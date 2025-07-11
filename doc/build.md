@@ -50,10 +50,10 @@ Install the required packages from your package manager.
 
 ```bash
 # runtime dependencies
-sudo apt install ffmpeg libsdl2-2.0-0 adb libusb-1.0-0
+sudo apt install ffmpeg libsdl3-0 adb libusb-1.0-0
 
 # client build dependencies
-sudo apt install gcc git pkg-config meson ninja-build libsdl2-dev \
+sudo apt install gcc git pkg-config meson ninja-build libsdl3-dev \
                  libavcodec-dev libavdevice-dev libavformat-dev libavutil-dev \
                  libswresample-dev libusb-1.0-0-dev
 
@@ -162,7 +162,7 @@ Install the packages with [Homebrew]:
 
 ```bash
 # runtime dependencies
-brew install sdl2 ffmpeg libusb
+brew install sdl3 ffmpeg libusb
 
 # client build dependencies
 brew install pkg-config meson
