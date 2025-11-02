@@ -465,6 +465,19 @@ sc_input_manager_process_key(struct sc_input_manager *im,
                 }
                 return;
         }
+
+        // Flatten conditions to avoid additional indentation levels
+        if (control) {
+            // Controls for all sources
+            switch (sdl_keycode) {
+                case SDLK_R:
+                    if (!repeat && shift && down && !paused) {
+                        reset_video(im);
+                    }
+                    return;
+            }
+        }
+
         if (control && !im->camera) {
             switch (sdl_keycode) {
                 case SDLK_H:
@@ -545,12 +558,8 @@ sc_input_manager_process_key(struct sc_input_manager *im,
                     }
                     return;
                 case SDLK_R:
-                    if (!repeat && down && !paused) {
-                        if (shift) {
-                            reset_video(im);
-                        } else {
-                            rotate_device(im);
-                        }
+                    if (!repeat && !shift && down && !paused) {
+                        rotate_device(im);
                     }
                     return;
                 case SDLK_K:
