@@ -80,8 +80,10 @@ public class CameraCapture extends SurfaceCapture {
 
     private final AtomicBoolean disconnected = new AtomicBoolean();
 
-    // Must be accessed only from the camera thread
+    // The following fields must be accessed only from the camera thread
     private boolean started;
+    private CaptureRequest.Builder requestBuilder;
+    private CameraCaptureSession currentSession;
 
     public CameraCapture(Options options) {
         this.explicitCameraId = options.getCameraId();
@@ -287,7 +289,7 @@ public class CameraCapture extends SurfaceCapture {
                 }
 
                 try {
-                    CaptureRequest.Builder requestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+                    requestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
                     requestBuilder.addTarget(captureSurface);
 
                     if (fps > 0) {
@@ -299,6 +301,7 @@ public class CameraCapture extends SurfaceCapture {
 
                     CaptureRequest request = requestBuilder.build();
                     setRepeatingRequest(session, request);
+                    currentSession = session;
                 } catch (CameraAccessException e) {
                     Ln.e("Camera error", e);
                     invalidate();
@@ -324,6 +327,8 @@ public class CameraCapture extends SurfaceCapture {
     public void stop() {
         cameraHandler.post(() -> {
             assertCameraThread();
+            currentSession = null;
+            requestBuilder = null;
             started = false;
         });
 
@@ -432,6 +437,21 @@ public class CameraCapture extends SurfaceCapture {
     @Override
     public boolean isClosed() {
         return disconnected.get();
+    }
+
+    public void setTorchEnabled(boolean enabled) {
+        cameraHandler.post(() -> {
+            assertCameraThread();
+            if (currentSession != null && requestBuilder != null) {
+                try {
+                    requestBuilder.set(CaptureRequest.FLASH_MODE, enabled ? CaptureRequest.FLASH_MODE_TORCH : CaptureRequest.FLASH_MODE_OFF);
+                    CaptureRequest request = requestBuilder.build();
+                    setRepeatingRequest(currentSession, request);
+                } catch (CameraAccessException e) {
+                    Ln.e("Camera error", e);
+                }
+            }
+        });
     }
 
     private void assertCameraThread() {
